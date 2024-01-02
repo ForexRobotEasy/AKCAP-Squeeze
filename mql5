@@ -1,0 +1,157 @@
+mql5
+//+------------------------------------------------------------------+
+//|                                                 AKCAP Squeeze.mq5 |
+//|                   Copyright 2022, Forex Robot Easy Team          |
+//|                             https://www.forexroboteasy.com        |
+//+------------------------------------------------------------------+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//|                      CONVERGENCE DETECTION                        |
+//|                                                                  |
+//+------------------------------------------------------------------+
+bool DetectConvergence(double[] bollingerBands, double[] keltnerChannels)
+{
+    // Logic to detect convergence between Bollinger Bands and Keltner Channels
+    // Example implementation:
+    for (int i = 0; i < ArraySize(bollingerBands); i++)
+    {
+        if (bollingerBands[i] > keltnerChannels[i])
+            return false;
+    }
+    return true;
+}
+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//|                     VOLATILITY PREDICTION                         |
+//|                                                                  |
+//+------------------------------------------------------------------+
+int PredictVolatility(double[] squeezeIndicator)
+{
+    // Logic to predict likelihood of high volatility periods following a squeeze
+    // Example implementation:
+    int count = 0;
+    for (int i = 0; i < ArraySize(squeezeIndicator); i++)
+    {
+        if (squeezeIndicator[i] > 0)
+            count++;
+    }
+    return count;
+}
+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//|                          TRADE ENTRY                              |
+//|                                                                  |
+//+------------------------------------------------------------------+
+bool GenerateEntrySignal(double[] squeezeIndicator, double[] histogram, double[] momentumLine)
+{
+    // Logic to generate trade entry signals based on AKCAP Squeeze strategy
+    // Example implementation:
+    int lastBarIndex = ArraySize(squeezeIndicator) - 1;
+    if (squeezeIndicator[lastBarIndex] > 0 && histogram[lastBarIndex] > 0 && momentumLine[lastBarIndex] > 0)
+        return true;
+    else
+        return false;
+}
+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//|                          TRADE EXIT                               |
+//|                                                                  |
+//+------------------------------------------------------------------+
+bool DetermineExitPoint(double[] price, double profitTarget, double stopLoss)
+{
+    // Logic to determine optimal trade exit points based on predefined criteria
+    // Example implementation:
+    int lastBarIndex = ArraySize(price) - 1;
+    if (price[lastBarIndex] >= profitTarget || price[lastBarIndex] <= stopLoss)
+        return true;
+    else
+        return false;
+}
+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//|                          RISK MANAGEMENT                          |
+//|                                                                  |
+//+------------------------------------------------------------------+
+double CalculatePositionSize(double accountBalance, double riskPercentage, double stopLoss)
+{
+    // Logic to calculate position size based on account balance, risk percentage, and stop loss
+    // Example implementation:
+    double positionSize = (accountBalance * riskPercentage) / stopLoss;
+    return positionSize;
+}
+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//|                            BACKTESTING                            |
+//|                                                                  |
+//+------------------------------------------------------------------+
+void BacktestAKCAPSqueeze(double[] price, double[] squeezeIndicator, double[] histogram, double[] momentumLine, 
+                         double profitTarget, double stopLoss, double riskPercentage, double accountBalance)
+{
+    // Logic to backtest AKCAP Squeeze strategy using historical data
+    // Example implementation:
+    int totalTrades = 0;
+    int winningTrades = 0;
+    int losingTrades = 0;
+    
+    for (int i = 0; i < ArraySize(price); i++)
+    {
+        if (DetectConvergence(bollingerBands, keltnerChannels))
+        {
+            if (GenerateEntrySignal(squeezeIndicator, histogram, momentumLine))
+            {
+                double positionSize = CalculatePositionSize(accountBalance, riskPercentage, stopLoss);
+                
+                if (DetermineExitPoint(price, profitTarget, stopLoss))
+                {
+                    // Trade exit logic
+                    if (price[i] >= profitTarget)
+                        winningTrades++;
+                    else if (price[i] <= stopLoss)
+                        losingTrades++;
+                }
+                
+                totalTrades++;
+            }
+        }
+    }
+    
+    // Print backtesting results
+    Print('Total Trades: ', totalTrades);
+    Print('Winning Trades: ', winningTrades);
+    Print('Losing Trades: ', losingTrades);
+}
+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//|                         MAIN FUNCTION                             |
+//|                                                                  |
+//+------------------------------------------------------------------+
+void OnStart()
+{
+    // Initialize historical data
+    double[] price = {1.2345, 1.2356, 1.2389, 1.2378, 1.2367, 1.2345, 1.2376, 1.2389, 1.2398, 1.2376};
+    double[] squeezeIndicator = {-1, -1, 1, -1, 1, 1, 1, -1, 1, 1};
+    double[] histogram = {0.001, 0.002, 0.003, 0.001, 0.002, -0.001, 0.003, 0.002, -0.001, 0.001};
+    double[] momentumLine = {0.001, 0.002, 0.003, 0.001, 0.002, -0.001, 0.003, 0.002, -0.001, 0.001};
+    
+    // Define strategy parameters
+    double profitTarget = 0.005;
+    double stopLoss = 0.002;
+    double riskPercentage = 0.02;
+    double accountBalance = 10000;
+    
+    // Perform backtesting
+    BacktestAKCAPSqueeze(price, squeezeIndicator, histogram, momentumLine, profitTarget, stopLoss, riskPercentage, accountBalance);
+}
